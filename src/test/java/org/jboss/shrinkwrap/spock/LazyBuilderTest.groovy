@@ -10,34 +10,20 @@ import Extension;
 
 class LazyBuilderTest extends Specification{
 
-	def static jar = Extension.createClosureForArchive(JavaArchive.class)
-	def static war = Extension.createClosureForArchive(WebArchive.class)
 	def static ear = Extension.createClosureForArchive(EnterpriseArchive.class)
+	def static war = Extension.createClosureForArchive(WebArchive.class)
+	def static jar = Extension.createClosureForArchive(JavaArchive.class)
 	
 	
 	def "test jar building"() {
 		given:
-			def jarDesc = jar ("JavaArchive.jar") {
+			def jarDesc = jar("JavaArchive.jar") {
 				classes String.class, Integer.class
 			}
 			def jar2 = ShrinkWrap.create(JavaArchive.class, "JavaArchive.jar")
 		when:
 			def testJar = jarDesc.build()
 			jar2.addClasses(String.class, Integer.class)
-		then:
-			testJar == jar2
-	}
-	
-	def "test jar augmentation"() {
-		given:
-			def jarDesc = jar ("JavaArchive.jar") {
-				classes String.class, Integer.class
-			}
-			def jar2 = ShrinkWrap.create(JavaArchive.class, "JavaArchive.jar")
-		 
-		when:
-			def testJar = (jarDesc + {classes Float.class}).build()
-			jar2.addClasses(String.class, Integer.class, Float.class)
 		then:
 			testJar == jar2
 	}
@@ -65,7 +51,7 @@ class LazyBuilderTest extends Specification{
 			
 			def warDesc = war ("WebArchive.war") {
 				classes String.class
-				asLibraries jarDesc 
+				asLibrary jarDesc
 			}
 			def war2 = ShrinkWrap.create(WebArchive.class, "WebArchive.war")
 			def jar2 = ShrinkWrap.create(JavaArchive.class, "numbers.jar")
@@ -85,7 +71,7 @@ class LazyBuilderTest extends Specification{
 		given:
 			def warDesc = war ("WebArchive.war") {
 				classes String.class
-				asLibraries jar ("numbers.jar") {
+				asLibrary jar ("numbers.jar") {
 					classes Float.class, Number.class
 				}
 			}
@@ -102,4 +88,111 @@ class LazyBuilderTest extends Specification{
 			testWar == war2
 
 	}
+	
+	def "test ear composition inline"() {
+		given:
+		def earDesc = ear ("EnterpriseArchive.ear") {
+			asModule war ("WebArchive.war") {
+				classes String.class
+				asLibrary jar ("numbers.jar") {
+					classes Float.class, Number.class
+				}
+			}
+		}
+		def ear2 = ShrinkWrap.create(EnterpriseArchive.class, "EnterpriseArchive.ear")
+		def war2 = ShrinkWrap.create(WebArchive.class, "WebArchive.war")
+		def jar2 = ShrinkWrap.create(JavaArchive.class, "numbers.jar")
+		
+		when:
+			def testEar = earDesc.build()
+			jar2.addClasses(Float.class, Number.class)
+			war2.addClasses(String.class)
+			war2.addAsLibraries(jar2)
+			ear2.addAsModule(war2)
+		
+		then:
+			testEar == ear2
+	}
+	
+	def "test closure inclusion"() {
+		given:
+			def spec = { classes String.class, Integer.class }
+			def testJar = jar ("jar.jar") { 
+				classes Double.class
+				include spec
+			}.build()
+		when:
+			def jar2 = ShrinkWrap.create(JavaArchive.class, "jar.jar")
+			jar2.addClasses(Double.class, String.class, Integer.class)
+		
+		then:
+			testJar == jar2
+		
+	}
+	
+	def "test closure addition"() {
+		given:	
+			def jarDesc = jar ("jar.jar") {
+				classes Double.class
+			}
+			//Note this is appended to the same builder
+			jarDesc + { classes String.class} + { classes Integer.class }
+			def testJar = jarDesc.build()
+		
+		when:
+			def jar2 = ShrinkWrap.create(JavaArchive.class, "jar.jar")
+			jar2.addClasses(Double.class, String.class, Integer.class)
+		
+		then:
+			testJar == jar2
+	}
+	
+	def "test closure addition modifies in place"() {
+		given:
+			def warDesc = war("war.war"){
+				classes String.class
+			}
+			def earDesc = ear("ear.ear"){
+				asModule warDesc
+			}
+			warDesc + { classes Integer.class }
+			def testEar = earDesc.build() //Should include Integer.class in the war inside
+			
+		when:
+			def ear2 = ShrinkWrap.create(EnterpriseArchive.class, "ear.ear")
+			def war2 = ShrinkWrap.create(WebArchive.class, "war.war")
+			war2.addClasses(String.class, Integer.class)
+			ear2.addAsModule(war2)
+		then:
+			warDesc.build() == war2
+			testEar == ear2
+			 
+		
+	}
+	
+	def "test ShrinkWrap augmentation"() {
+		given:
+			def namedEar1 = ShrinkWrap.ear("name.ear"){}.build()
+			def namedEar2 = ShrinkWrap.create(EnterpriseArchive.class, "name.ear")
+			
+			def namedJar1 = ShrinkWrap.jar("name.jar") { }.build()
+			def namedJar2 = ShrinkWrap.create(JavaArchive.class, "name.jar")
+			
+			def namedWar1 = ShrinkWrap.war("name.war"){}.build()
+			def namedWar2 = ShrinkWrap.create(WebArchive.class, "name.war")
+			
+			
+			def unnamedEar = ShrinkWrap.ear{}.build()
+			def unnamedWar = ShrinkWrap.war{}.build()
+			def unnamedJar = ShrinkWrap.jar{}.build()
+			
+			assert namedEar1 == namedEar2
+			assert namedWar1 == namedWar2
+			assert namedJar1 == namedJar2
+			
+			assert EnterpriseArchive.class.isAssignableFrom(unnamedEar.class)
+			assert WebArchive.class.isAssignableFrom(unnamedWar.class)
+			assert JavaArchive.class.isAssignableFrom(unnamedJar.class)
+	}
+	
 }
