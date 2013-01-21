@@ -23,10 +23,11 @@ class Extension implements IGlobalExtension {
 	
 	/**
 	 * 
-	 * @param Helper method for creating the closures associated with each type of Archive. 
+	 * Helper method for creating the closures associated with each type of Archive. 
 	 * Since the builder basically delegates all calls to the Archive implementation the
 	 * logic can be reused.
-	 *  
+	 * 
+	 * @param Archive type the closure is going to handle 
 	 * @return A closure that accepts either a name and a build description closure or just a closure. 
 	 */
 	private static Closure<LazyBuilder> createClosureForArchive(Class<? extends Archive> aClass) {
