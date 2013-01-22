@@ -1,18 +1,17 @@
-package org.jboss.shrinkwrap.spock
+package org.jboss.shrinkwrap.groovy
 
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.api.ShrinkWrap
+import org.jboss.shrinkwrap.api.spec.EnterpriseArchive
+import org.jboss.shrinkwrap.api.spec.JavaArchive
+import org.jboss.shrinkwrap.api.spec.WebArchive
 
-import spock.lang.Specification;
-import Extension;
+import spock.lang.Specification
 
 class LazyBuilderTest extends Specification{
 
-	def static ear = Extension.createClosureForArchive(EnterpriseArchive.class)
-	def static war = Extension.createClosureForArchive(WebArchive.class)
-	def static jar = Extension.createClosureForArchive(JavaArchive.class)
+	def static ear = ShrinkWrapGroovy.createClosureForArchive(EnterpriseArchive.class)
+	def static war = ShrinkWrapGroovy.createClosureForArchive(WebArchive.class)
+	def static jar = ShrinkWrapGroovy.createClosureForArchive(JavaArchive.class)
 	
 	
 	def "test jar building"() {

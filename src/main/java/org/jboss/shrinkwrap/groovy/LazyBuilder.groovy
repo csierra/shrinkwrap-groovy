@@ -1,4 +1,4 @@
-package org.jboss.shrinkwrap.spock
+package org.jboss.shrinkwrap.groovy
 
 import org.jboss.shrinkwrap.api.Archive
 
@@ -72,4 +72,10 @@ public class LazyBuilder {
 		}
 		return this.instance
 	}
+	
+	def plus (Closure c) { 
+		this.appendClosures(c)
+		return this
+	}
+
 }
