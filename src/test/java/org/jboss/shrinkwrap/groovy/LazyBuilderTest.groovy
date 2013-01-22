@@ -135,7 +135,7 @@ class LazyBuilderTest extends Specification{
 				classes Double.class
 			}
 			//Note this is appended to the same builder
-			jarDesc + { classes String.class} + { classes Integer.class }
+			jarDesc << { classes String.class} << { classes Integer.class }
 			def testJar = jarDesc.build()
 		
 		when:
@@ -146,7 +146,7 @@ class LazyBuilderTest extends Specification{
 			testJar == jar2
 	}
 	
-	def "test closure addition modifies in place"() {
+	def "test closure augmentation modifies in place"() {
 		given:
 			def warDesc = war("war.war"){
 				classes String.class
@@ -154,7 +154,7 @@ class LazyBuilderTest extends Specification{
 			def earDesc = ear("ear.ear"){
 				asModule warDesc
 			}
-			warDesc + { classes Integer.class }
+			warDesc << { classes Integer.class }
 			def testEar = earDesc.build() //Should include Integer.class in the war inside
 			
 		when:

@@ -51,8 +51,9 @@ public class LazyBuilder {
 		} as Object[] //This is needed for method lookup
 		
 		def method = this.instance.metaClass.getMetaMethod("$name", args)
+		def m 
 		if (method == null) {
-			def m = name.capitalize();
+			m = name.capitalize();
 			method = this.instance.metaClass.getMetaMethod("add$m", args)
 		}
 		if (method == null) {
@@ -73,7 +74,7 @@ public class LazyBuilder {
 		return this.instance
 	}
 	
-	def plus (Closure c) { 
+	def leftShift (Closure c) { 
 		this.appendClosures(c)
 		return this
 	}
