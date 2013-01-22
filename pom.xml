@@ -12,14 +12,6 @@
         <version>1.3</version>
         <configuration>
           <providerSelection>1.7</providerSelection>
-          <!-- <sources>
-            <fileset>
-                <directory>${projects.basedir}/src/main/java</directory>
-                <includes>
-                    <include>**/*.groovy</include>
-                </includes>
-            </fileset>
-          </sources> -->
         </configuration>
         <executions>
           <execution>
