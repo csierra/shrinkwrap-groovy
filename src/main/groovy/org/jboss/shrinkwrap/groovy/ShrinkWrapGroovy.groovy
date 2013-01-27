@@ -4,6 +4,7 @@ import groovy.lang.Closure;
 
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.descriptor.api.Descriptors;
 
 class ShrinkWrapGroovy {
 	
@@ -47,6 +48,41 @@ class ShrinkWrapGroovy {
 				c.@owner = c.owner.owner
 			}
 			return builder;
+		}
+	}
+	
+	public static Closure<LazyBuilder> createClosureForDescriptor(Class<? extends Archive> aClass) {
+		// A new closure is being created and its the closure what is actually returned
+		{ Object ... args ->
+			def descriptor
+			def c
+			def realargs
+			
+			realargs = args.flatten() //Needed when invoked through metaclass !!
+			
+			if (realargs[0] instanceof String && realargs[1] instanceof Closure) {
+				def name = realargs[0]
+				c = realargs[1]
+				descriptor = Descriptors.create(aClass, name)
+			}
+			else if (realargs[0] instanceof Closure) {
+				c = realargs[0]
+				descriptor = Descriptors.create(aClass)
+			}
+			else {
+				throw new IllegalArgumentException()
+			}
+			
+			def builder = new DescriptorBuilder(descriptor)
+			c.delegate = builder
+			
+			//When nesting closures we still want the outermost parent to be the one resolving
+			if (c.owner instanceof Closure) {
+				c.@owner = c.owner.owner
+			}
+			
+			c()
+			return descriptor
 		}
 	}
 	
