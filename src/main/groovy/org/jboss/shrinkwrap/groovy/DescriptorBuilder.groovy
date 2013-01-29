@@ -3,6 +3,7 @@ package org.jboss.shrinkwrap.groovy
 import java.util.Map;
 
 import org.codehaus.groovy.runtime.metaclass.MetaMethodIndex;
+import org.jboss.shrinkwrap.descriptor.api.Descriptor;
 import org.spockframework.builder.ClosureBlueprint;
 
 /**
@@ -14,12 +15,11 @@ import org.spockframework.builder.ClosureBlueprint;
  * @author <a href="mailto:csierra@gmail.com">Carlos Sierra</a>
  *
  */
-class DescriptorBuilder {
+class DescriptorBuilder extends LazyBuilder {
 	
-	def instance
 	
 	DescriptorBuilder(instance) {
-		this.instance = instance
+		super(instance)
 	}
 	
 	def invokeMethod(String name, args) {

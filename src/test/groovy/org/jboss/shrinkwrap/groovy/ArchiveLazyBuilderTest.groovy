@@ -4,14 +4,16 @@ import org.jboss.shrinkwrap.api.ShrinkWrap
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive
 import org.jboss.shrinkwrap.api.spec.JavaArchive
 import org.jboss.shrinkwrap.api.spec.WebArchive
+import org.jboss.shrinkwrap.descriptor.api.application6.ApplicationDescriptor;
 
 import spock.lang.Specification
 
-class LazyBuilderTest extends Specification{
+class ArchiveLazyBuilderTest extends Specification{
 
 	def static ear = ShrinkWrapGroovy.createClosureForArchive(EnterpriseArchive.class)
 	def static war = ShrinkWrapGroovy.createClosureForArchive(WebArchive.class)
 	def static jar = ShrinkWrapGroovy.createClosureForArchive(JavaArchive.class)
+	def static application = ShrinkWrapGroovy.createClosureForDescriptor(ApplicationDescriptor.class)
 	
 	
 	def "test jar building"() {
@@ -192,6 +194,25 @@ class LazyBuilderTest extends Specification{
 			assert EnterpriseArchive.class.isAssignableFrom(unnamedEar.class)
 			assert WebArchive.class.isAssignableFrom(unnamedWar.class)
 			assert JavaArchive.class.isAssignableFrom(unnamedJar.class)
+	}
+	
+	def "test archive with descriptors"() {
+		given: 
+			def appDef = application {
+					module {
+						ejb "peperolo.jar"
+					}
+				} 
+			appDef << {
+					module {
+						web {
+							webUri "aUri" 
+						}
+					}
+				}
+			println ear {
+				setApplicationXML appDef
+			}.build().getContent()
 	}
 	
 }

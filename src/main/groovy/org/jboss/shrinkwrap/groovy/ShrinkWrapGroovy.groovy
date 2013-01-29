@@ -1,10 +1,8 @@
 package org.jboss.shrinkwrap.groovy
 
-import groovy.lang.Closure;
-
-import org.jboss.shrinkwrap.api.Archive;
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.descriptor.api.Descriptors;
+import org.jboss.shrinkwrap.api.Archive
+import org.jboss.shrinkwrap.api.ShrinkWrap
+import org.jboss.shrinkwrap.descriptor.api.Descriptors
 
 class ShrinkWrapGroovy {
 	
@@ -39,7 +37,7 @@ class ShrinkWrapGroovy {
 				throw new IllegalArgumentException()
 			}
 			
-			def builder = new LazyBuilder(archive)
+			def builder = new ArchiveLazyBuilder(archive)
 			c.delegate = builder
 			builder.appendClosures(c)
 			
@@ -75,14 +73,14 @@ class ShrinkWrapGroovy {
 			
 			def builder = new DescriptorBuilder(descriptor)
 			c.delegate = builder
+			builder.appendClosures(c)
 			
 			//When nesting closures we still want the outermost parent to be the one resolving
 			if (c.owner instanceof Closure) {
 				c.@owner = c.owner.owner
 			}
 			
-			c()
-			return descriptor
+			return builder
 		}
 	}
 	

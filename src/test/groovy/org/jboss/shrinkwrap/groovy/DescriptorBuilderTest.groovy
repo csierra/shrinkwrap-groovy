@@ -32,7 +32,7 @@ class DescriptorBuilderTest {
 			module {
 				ejb "aFileName"
 			}
-		}.exportAsString() ==
+		}.build().exportAsString() ==
 		Descriptors.create(ApplicationDescriptor.class).version("6").displayName("datachannel_ear").
 		createModule().getOrCreateWeb().webUri("webUri").contextRoot("/data/resources").up().up().
 		createModule().ejb("aFileName").up().exportAsString()
@@ -48,7 +48,7 @@ class DescriptorBuilderTest {
 					property {name "property"; value "value"}
 				}
 			}
-		}.exportAsString() ==
+		}.build().exportAsString() ==
 		Descriptors.create(PersistenceDescriptor.class).version("2.0").
 		getOrCreatePersistenceUnit().name("aName").jtaDataSource("anotherName").
 		getOrCreateProperties().createProperty().name("property").value("value").
@@ -71,7 +71,7 @@ class DescriptorBuilderTest {
 				filterName "aFilter"
 				filterClass "javax.servlet.HttpServlet"
 			}
-		}.exportAsString() ==
+		}.build().exportAsString() ==
 		wad.version("3.0").displayName("aName").createSessionConfig().sessionTimeout(30).up().
 		createListener().description("aDescription").listenerClass(String.class.getName()).up().
 		createFilter().filterName("aFilter").filterClass("javax.servlet.HttpServlet").up().
