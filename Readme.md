@@ -40,7 +40,7 @@ class ExampleDeploy {
 			}
 		}, "META-INF/beans.xml"
 		
-		asWebInfResource , "web.xml"
+		asWebInfResource webAppDesc, "web.xml"
 	}
 	
 	def earDesc = ear {
