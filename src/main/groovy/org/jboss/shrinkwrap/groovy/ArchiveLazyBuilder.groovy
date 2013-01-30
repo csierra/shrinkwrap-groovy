@@ -10,7 +10,7 @@ class ArchiveLazyBuilder extends LazyBuilder {
 		super(instance)
 	}
 	
-	//This particular case is needed because its not easy to infer dinamycally
+	//This particular case is needed because its not easy to infer dynamically
 	def classes(Class<?>[] classes) {
 		this.instance.addClasses(classes)
 	}
