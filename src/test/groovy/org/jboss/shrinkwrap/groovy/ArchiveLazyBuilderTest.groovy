@@ -1,10 +1,13 @@
 package org.jboss.shrinkwrap.groovy
 
+import java.lang.invoke.MethodHandleImpl.BindCaller.T
+
+import org.jboss.shrinkwrap.api.ArchivePaths
 import org.jboss.shrinkwrap.api.ShrinkWrap
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive
 import org.jboss.shrinkwrap.api.spec.JavaArchive
 import org.jboss.shrinkwrap.api.spec.WebArchive
-import org.jboss.shrinkwrap.descriptor.api.application6.ApplicationDescriptor;
+import org.jboss.shrinkwrap.descriptor.api.application6.ApplicationDescriptor
 
 import spock.lang.Specification
 
@@ -203,6 +206,11 @@ class ArchiveLazyBuilderTest extends Specification{
 						ejb "peperolo.jar"
 					}
 				} 
+			
+			def earDesc = ear {
+				setApplicationXML appDef
+			}
+			 
 			appDef << {
 					module {
 						web {
@@ -210,9 +218,11 @@ class ArchiveLazyBuilderTest extends Specification{
 						}
 					}
 				}
-			println ear {
-				setApplicationXML appDef
-			}.build().getContent()
+			
+			def EnterpriseArchive earFile = earDesc.build()
+			
+			org.jboss.shrinkwrap.api.Node n = earFile.get(ArchivePaths.create("/META-INF/application.xml"))
+			assert n.getAsset().dump().contains('''<web-uri>aUri</web-uri>''')
 	}
 	
 }
