@@ -1,7 +1,5 @@
 package org.jboss.shrinkwrap.groovy
 
-import java.lang.invoke.MethodHandleImpl.BindCaller.T
-
 import org.jboss.shrinkwrap.api.ArchivePaths
 import org.jboss.shrinkwrap.api.ShrinkWrap
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive
