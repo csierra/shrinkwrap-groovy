@@ -17,7 +17,7 @@ class ShrinkWrapGroovy {
 		//This returns the closure 
 		{ Object ... args ->
 			def instance
-			def c
+			def Closure<?> c
 			def realargs
 			
 			realargs = args.flatten() //Needed when invoked through metaclass !! https://jira.codehaus.org/browse/GROOVY-5009
@@ -36,13 +36,9 @@ class ShrinkWrapGroovy {
 			}
 			
 			def builderInstance = builderClass.newInstance(instance)
+			c.resolveStrategy = Closure.DELEGATE_FIRST
 			c.delegate = builderInstance
 			builderInstance.appendClosures(c)
-			
-			//When nesting closures we still want the outermost parent to be the one resolving
-			if (c.owner instanceof Closure) {
-				c.@owner = c.owner.owner
-			}
 			
 			return builderInstance
 		}

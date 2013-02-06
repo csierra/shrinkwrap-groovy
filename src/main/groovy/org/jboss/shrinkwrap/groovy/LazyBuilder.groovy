@@ -22,14 +22,16 @@ public abstract class LazyBuilder {
 	
 	def appendClosures(Closure<?> ... c) {
 		c.each {
+			it.resolveStrategy = Closure.DELEGATE_FIRST
 			it.delegate = this
 			this.closures.add(it)
 		}
 	}
 	
-	def abstract invokeMethod(String name, args)
+	def abstract methodMissing(String name, args)
 	
 	def include(Closure<?> i) {
+		i.resolveStrategy = Closure.DELEGATE_FIRST
 		i.delegate = this
 		i()
 	}

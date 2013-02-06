@@ -22,7 +22,7 @@ class DescriptorBuilder extends LazyBuilder {
 		super(instance)
 	}
 	
-	def invokeMethod(String name, args) {
+	def methodMissing(String name, args) {
 		try {
 			def realargs = args
 			def nested = false
@@ -47,6 +47,9 @@ class DescriptorBuilder extends LazyBuilder {
 			if (metamethod == null) {
 				metamethodname = "getOrCreate"+name.capitalize()
 				metamethod = this.instance.metaClass.getMetaMethod(metamethodname, realargs);
+			}
+			if (metamethod == null) {
+				throw new MissingMethodException(name, this.instance.class, args)
 			}
 			
 			if (nested) { //We create a new builder to handle the nested closure

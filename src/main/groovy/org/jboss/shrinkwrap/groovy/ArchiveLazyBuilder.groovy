@@ -24,7 +24,7 @@ class ArchiveLazyBuilder extends LazyBuilder {
 	 * @param args List of arguments passed to the method invocation
 	 * @return
 	 */
-	def invokeMethod(String name, args) {
+	def methodMissing(String name, args) {
 		/* Evaluate all the LazyBuilders that we may have been passed as parameter before
 		 * invoking ShrinkWrap
 		 */
@@ -54,8 +54,12 @@ class ArchiveLazyBuilder extends LazyBuilder {
 			method = this.instance.metaClass.getMetaMethod("add$m", args)
 		}
 		if (method == null) {
-			throw new RuntimeException("Could not find method add$m($args) or $name($args) on "+this.instance.class)
+			throw new MissingMethodException(name, this.instance.class, args)
 		}
-		method.doMethodInvoke(this.instance, args)
+		try {
+			method.doMethodInvoke(this.instance, args)
+		} catch (Exception e) {
+			throw new RuntimeException(e)
+		}
 	}
 }
