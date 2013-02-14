@@ -19,7 +19,7 @@ class ExampleDeploy {
 		classes Double.class, Float.class
 	}
 	
-	def webAppDesc = webXml {
+	def webAppDesc = webXml ("web.xml") {
 				version "3.0"
 				sessionConfig {
 					sessionTimeout 30
@@ -34,13 +34,13 @@ class ExampleDeploy {
 		
 		include otherClasses
 		
-		asResource beans {
+		asResource beans ("META-INF/beans.xml") {
 			alternatives {
 				clazz StringBuilder.class.name
-			}
-		}, "META-INF/beans.xml"
+			} as NamedAsset
+		}
 		
-		asWebInfResource webAppDesc, "web.xml"
+		asWebInfResource webAppDesc as NamedAsset
 	}
 	
 	def earDesc = ear {
@@ -52,7 +52,7 @@ class ExampleDeploy {
 					contextRoot "aContextRoot"
 				}
 			}
-		} 
+		} as Asset 
 	}
 	
 	def build() {
