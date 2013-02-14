@@ -15,6 +15,8 @@ public abstract class LazyBuilder<T> {
 	def T instance;
 	def closures = []
 	
+	private def built = false
+	
 	private <T> Closure<T> prepareClosure(Closure<T> closure) {
 		def Closure<T> c = closure.clone()
 		c.resolveStrategy = Closure.DELEGATE_FIRST
@@ -30,6 +32,7 @@ public abstract class LazyBuilder<T> {
 		for (Closure<?> c: closures) {
 			this.closures.add(this.prepareClosure (c))
 		}
+		built = false
 	}
 	
 	def abstract methodMissing(String name, args)
@@ -39,14 +42,19 @@ public abstract class LazyBuilder<T> {
 	}
 	
 	def <T> T build() {
-		this.closures.each {
-			it()
+		if (!built) {
+			this.closures.each {
+				it()
+			}
+			built = true
 		}
+		this.closures.clear()
 		return this.instance
 	}
 	
-	def leftShift (Closure<?> c) { 
+	def leftShift (Closure<?> c) {
 		this.appendClosures(c)
+		built = false
 		return this
 	}
 

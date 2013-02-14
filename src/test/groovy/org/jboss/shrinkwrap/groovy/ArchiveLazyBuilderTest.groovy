@@ -230,13 +230,51 @@ class ArchiveLazyBuilderTest extends Specification{
 	
 	def "test inline descriptor"() {
 		given:
-			war {
-				classes String.class
-				webInfResource beans ('beans.xml') {
-					
-				} as NamedAsset
-			}.build()
 			
+			def b = beans ("META-INF/beans.xml") {
+					alternatives { clazz StringBuilder.class.name }
+				} 
+			
+			BeansDescriptor bd = Descriptors.create(BeansDescriptor.class)
+			bd.getOrCreateAlternatives().clazz(StringBuilder.class.getName())
+			
+			assert war {
+					classes String.class
+					asResource b as NamedAsset
+				}.build().get(ArchivePaths.create("/WEB-INF/classes/META-INF/beans.xml")).
+				      getAsset().content == bd.exportAsString()
+			
+			assert war {
+				  classes String.class
+				  asResource beans ("META-INF/beans.xml") {
+					  			alternatives { clazz StringBuilder.class.name }
+				  			} as NamedAsset
+				  }.build().get(ArchivePaths.create("/WEB-INF/classes/META-INF/beans.xml")).
+					getAsset().content == bd.exportAsString()
 	}
-	
+			
+	def "test incremental build"() {
+		given:
+			BeansDescriptor bd = Descriptors.create(BeansDescriptor.class)
+			bd.getOrCreateAlternatives().clazz(StringBuilder.class.getName())
+			
+			def b = beans ("META-INF/beans.xml") {
+				alternatives { clazz StringBuilder.class.name }
+			}
+			
+			assert war {
+				classes String.class
+				asResource b as NamedAsset
+			}.build().get(ArchivePaths.create("/WEB-INF/classes/META-INF/beans.xml")).
+				  getAsset().content == bd.exportAsString()
+				  
+			b << { alternatives { clazz Number.class.name } }
+			bd.getOrCreateAlternatives().clazz(Number.class.getName())
+			
+			assert war {
+				classes String.class
+				asResource b as NamedAsset
+			}.build().get(ArchivePaths.create("/WEB-INF/classes/META-INF/beans.xml")).
+				  getAsset().content == bd.exportAsString()
+	}
 }
