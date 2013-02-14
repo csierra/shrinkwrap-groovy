@@ -1,10 +1,8 @@
 package org.jboss.shrinkwrap.groovy
 
-import java.util.Map;
-
-import org.codehaus.groovy.runtime.metaclass.MetaMethodIndex;
-import org.jboss.shrinkwrap.descriptor.api.Descriptor;
-import org.spockframework.builder.ClosureBlueprint;
+import org.jboss.shrinkwrap.api.asset.Asset
+import org.jboss.shrinkwrap.api.asset.StringAsset
+import org.jboss.shrinkwrap.descriptor.api.Descriptor
 
 /**
  * Builder class that delegates method class to the underlying descriptor implementation. 
@@ -15,20 +13,27 @@ import org.spockframework.builder.ClosureBlueprint;
  * @author <a href="mailto:csierra@gmail.com">Carlos Sierra</a>
  *
  */
-class DescriptorBuilder extends LazyBuilder {
-	
+class DescriptorBuilder extends LazyBuilder<Descriptor> {
 	
 	DescriptorBuilder(instance) {
 		super(instance)
+	}
+	
+	def asType(Class<?> type) {
+		this.build()
+		if (type == Asset) 
+			return new StringAsset(this.instance.exportAsString())
+		if (type == NamedAsset)
+			return new NamedAsset([this as Asset, this.instance.descriptorName])
 	}
 	
 	def methodMissing(String name, args) {
 		try {
 			def realargs = args
 			def nested = false
-			def closure
+			def Closure<?> closure
 			if (args[-1] instanceof Closure) { //We have a nested closure
-				closure = args[-1]
+				closure = args[-1].clone()
 				nested = true
 				//Adjust the arguments removing the closure
 				if (args.length <= 1) {
@@ -56,9 +61,7 @@ class DescriptorBuilder extends LazyBuilder {
 				metamethod = this.instance.metaClass.getMetaMethod(metamethodname, realargs);
 				def child = metamethod.doMethodInvoke(this.instance, realargs)
 				closure.delegate = new DescriptorBuilder(child)
-				if (closure.owner instanceof Closure) {
-					closure.@owner = closure.owner.owner
-				}
+				closure.resolveStrategy = Closure.DELEGATE_FIRST
 				return closure() //return the result of the closure, not the closure itself
 			}
 			else {

@@ -1,12 +1,10 @@
 package org.jboss.shrinkwrap.groovy
 
 import org.jboss.shrinkwrap.api.Archive
-import org.jboss.shrinkwrap.api.asset.StringAsset
-import org.jboss.shrinkwrap.descriptor.api.Descriptor
 
-class ArchiveLazyBuilder extends LazyBuilder {
+class ArchiveLazyBuilder<T extends Archive<T>> extends LazyBuilder<Archive<T>> {
 	
-	def ArchiveLazyBuilder(Archive<?> instance) {
+	def ArchiveLazyBuilder(Archive<T> instance) {
 		super(instance)
 	}
 	
@@ -25,18 +23,16 @@ class ArchiveLazyBuilder extends LazyBuilder {
 	 * @return
 	 */
 	def methodMissing(String name, args) {
-		/* Evaluate all the LazyBuilders that we may have been passed as parameter before
-		 * invoking ShrinkWrap
-		 */
+		
 		try {
-			args = args.collect {
+			/* Use of flatten allows us to receive a List and treat it as separate parameters to
+			 * a method. See <link>NamedAsset</link>*/
+			args = args.flatten().collect {
 				
-				//FIXME: ugh...
 				if (it instanceof LazyBuilder) {
+					/* Evaluate all the LazyBuilders that we may have been passed as parameter before
+		             * invoking ShrinkWrap */
 					def result = it.build()
-					return (result instanceof Descriptor) ? 
-							new StringAsset(result.exportAsString()) : 
-							result 
 				}
 				else {
 					return it
@@ -52,6 +48,9 @@ class ArchiveLazyBuilder extends LazyBuilder {
 		if (method == null) {
 			m = name.capitalize();
 			method = this.instance.metaClass.getMetaMethod("add$m", args)
+		}
+		if (method == null) {
+			method = this.instance.metaClass.getMetaMethod("addAs$m", args)
 		}
 		if (method == null) {
 			throw new MissingMethodException(name, this.instance.class, args)

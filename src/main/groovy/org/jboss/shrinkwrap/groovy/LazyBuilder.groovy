@@ -1,42 +1,44 @@
 package org.jboss.shrinkwrap.groovy
 
-import org.jboss.shrinkwrap.api.Archive
 
 /**
  * Class that holds all the closure definitions. It also delegates all method invocations
- * inside the closures to the actual Archive implementation. 
+ * inside the closures to the actual implementation. 
  * User of this LazyBuilder needs to call <link>LazyBuilder#build()</link> for getting the
- * actual archive built. 
+ * actual artifact built. 
  * 
  * @author <a href="mailto:csierra@gmail.com">Carlos Sierra</a>
  *
  */
-public abstract class LazyBuilder {
+public abstract class LazyBuilder<T> {
 		
-	def instance;
+	def T instance;
 	def closures = []
+	
+	private <T> Closure<T> prepareClosure(Closure<T> closure) {
+		def Closure<T> c = closure.clone()
+		c.resolveStrategy = Closure.DELEGATE_FIRST
+		c.delegate = this
+		return c
+	}
 	
 	def LazyBuilder(instance) {
 		this.instance = instance;
 	}
 	
-	def appendClosures(Closure<?> ... c) {
-		c.each {
-			it.resolveStrategy = Closure.DELEGATE_FIRST
-			it.delegate = this
-			this.closures.add(it)
+	def appendClosures(Closure<?> ... closures) {
+		for (Closure<?> c: closures) {
+			this.closures.add(this.prepareClosure (c))
 		}
 	}
 	
 	def abstract methodMissing(String name, args)
 	
 	def include(Closure<?> i) {
-		i.resolveStrategy = Closure.DELEGATE_FIRST
-		i.delegate = this
-		i()
+		prepareClosure(i)()
 	}
 	
-	def build() {
+	def <T> T build() {
 		this.closures.each {
 			it()
 		}

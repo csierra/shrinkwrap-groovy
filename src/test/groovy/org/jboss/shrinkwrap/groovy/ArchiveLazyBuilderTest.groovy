@@ -2,10 +2,14 @@ package org.jboss.shrinkwrap.groovy
 
 import org.jboss.shrinkwrap.api.ArchivePaths
 import org.jboss.shrinkwrap.api.ShrinkWrap
+import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive
 import org.jboss.shrinkwrap.api.spec.JavaArchive
 import org.jboss.shrinkwrap.api.spec.WebArchive
+import org.jboss.shrinkwrap.descriptor.api.Descriptor;
+import org.jboss.shrinkwrap.descriptor.api.Descriptors;
 import org.jboss.shrinkwrap.descriptor.api.application6.ApplicationDescriptor
+import org.jboss.shrinkwrap.descriptor.api.beans10.BeansDescriptor;
 
 import spock.lang.Specification
 
@@ -15,6 +19,7 @@ class ArchiveLazyBuilderTest extends Specification{
 	def static war = ShrinkWrapGroovy.createClosureForArchive(WebArchive.class)
 	def static jar = ShrinkWrapGroovy.createClosureForArchive(JavaArchive.class)
 	def static application = ShrinkWrapGroovy.createClosureForDescriptor(ApplicationDescriptor.class)
+	def static beans = ShrinkWrapGroovy.createClosureForDescriptor(BeansDescriptor.class)
 	
 	
 	def "test jar building"() {
@@ -206,7 +211,7 @@ class ArchiveLazyBuilderTest extends Specification{
 				} 
 			
 			def earDesc = ear {
-				setApplicationXML appDef
+				setApplicationXML appDef as Asset
 			}
 			 
 			appDef << {
@@ -221,6 +226,17 @@ class ArchiveLazyBuilderTest extends Specification{
 			
 			org.jboss.shrinkwrap.api.Node n = earFile.get(ArchivePaths.create("/META-INF/application.xml"))
 			assert n.getAsset().dump().contains('''<web-uri>aUri</web-uri>''')
+	}
+	
+	def "test inline descriptor"() {
+		given:
+			war {
+				classes String.class
+				webInfResource beans ('beans.xml') {
+					
+				} as NamedAsset
+			}.build()
+			
 	}
 	
 }

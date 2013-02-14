@@ -2,7 +2,9 @@ package org.jboss.shrinkwrap.groovy
 
 import org.jboss.shrinkwrap.api.Archive
 import org.jboss.shrinkwrap.api.ShrinkWrap
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.descriptor.api.Descriptors
+import org.jboss.shrinkwrap.descriptor.api.beans10.BeansDescriptor;
 
 class ShrinkWrapGroovy {
 	
@@ -13,11 +15,11 @@ class ShrinkWrapGroovy {
 	 *
 	 */
 	
-	private static createGenericClosure = { Class<LazyBuilder> builderClass, Class<?> factory, Class<?> aClass ->
+	private static <T> Closure<LazyBuilder<T>> createGenericClosure (Class<LazyBuilder<T>> builderClass, Class<?> factory, Class<T> aClass) {
 		//This returns the closure 
 		{ Object ... args ->
 			def instance
-			def Closure<?> c
+			def Closure<T> c
 			def realargs
 			
 			realargs = args.flatten() //Needed when invoked through metaclass !! https://jira.codehaus.org/browse/GROOVY-5009
@@ -36,14 +38,14 @@ class ShrinkWrapGroovy {
 			}
 			
 			def builderInstance = builderClass.newInstance(instance)
-			c.resolveStrategy = Closure.DELEGATE_FIRST
-			c.delegate = builderInstance
 			builderInstance.appendClosures(c)
 			
 			return builderInstance
 		}
 	}
 	
-	public static createClosureForDescriptor = createGenericClosure.curry(DescriptorBuilder.class, Descriptors.class)
-	public static createClosureForArchive = createGenericClosure.curry(ArchiveLazyBuilder.class, ShrinkWrap.class)
+	public static createClosureForDescriptor = ShrinkWrapGroovy.&createGenericClosure.curry(DescriptorBuilder.class, Descriptors.class)
+	public static <T extends Archive<T>> Closure<LazyBuilder<ArchiveLazyBuilder<T>>> createClosureForArchive (Class<T> aClass) {
+		createGenericClosure(ArchiveLazyBuilder.class, ShrinkWrap.class, aClass)
+	}
 }
