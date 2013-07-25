@@ -13,7 +13,7 @@ class ShrinkWrapGroovy {
 	 *
 	 */
 	
-	private static createGenericClosure = { Class<LazyBuilder> builderClass, Class<?> factory, Class<?> aClass ->
+	private static createGenericClosure = { mix, Class<?> factory, Class<?> aClass ->
 		//This returns the closure 
 		{ Object ... args ->
 			def instance
@@ -35,17 +35,16 @@ class ShrinkWrapGroovy {
 				throw new IllegalArgumentException()
 			}
 			
-			def builderInstance = builderClass.newInstance(instance)
-			c.delegate = builderInstance
-			builderInstance.appendClosures(c)
-			
-			//When nesting closures we still want the outermost parent to be the one resolving
-			if (c.owner instanceof Closure) {
-				c.@owner = c.owner.owner
-			}
-			
-			return builderInstance
+			instance.metaClass.mixin mix
+			executeClosureonDelegate(instance, c)
+			return instance
 		}
+	}
+	
+	protected static executeClosureonDelegate(delegate, Closure<?> closure) {
+		def Closure<?> c = closure.clone()
+		c.delegate = delegate
+		c()
 	}
 	
 	public static createClosureForDescriptor = createGenericClosure.curry(DescriptorBuilder.class, Descriptors.class)

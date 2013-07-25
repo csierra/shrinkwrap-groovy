@@ -4,15 +4,11 @@ import org.jboss.shrinkwrap.api.Archive
 import org.jboss.shrinkwrap.api.asset.StringAsset
 import org.jboss.shrinkwrap.descriptor.api.Descriptor
 
-class ArchiveLazyBuilder extends LazyBuilder {
-	
-	def ArchiveLazyBuilder(Archive<?> instance) {
-		super(instance)
-	}
+public class ArchiveLazyBuilder {
 	
 	//This particular case is needed because its not easy to infer dynamically
 	def classes(Class<?>[] classes) {
-		this.instance.addClasses(classes)
+		this.addClasses(classes)
 	}
 	
 	/**
@@ -24,8 +20,8 @@ class ArchiveLazyBuilder extends LazyBuilder {
 	 * @param args List of arguments passed to the method invocation
 	 * @return
 	 */
-	def invokeMethod(String name, args) {
-		/* Evaluate all the LazyBuilders that we may have been passed as parameter before
+	def methodMissing(String name, args) {
+		/* Evaluate all the LazyBuilders that we may have been passed as parameter before--------------------------------
 		 * invoking ShrinkWrap
 		 */
 		try {
@@ -47,15 +43,21 @@ class ArchiveLazyBuilder extends LazyBuilder {
 			throw new RuntimeException(t)
 		}
 		
-		def method = this.instance.metaClass.getMetaMethod("$name", args)
+		def method = this.metaClass.owner.metaClass.getMetaMethod("$name", args)
 		def m
 		if (method == null) {
 			m = name.capitalize();
-			method = this.instance.metaClass.getMetaMethod("add$m", args)
+			method = this.metaClass.owner.metaClass.getMetaMethod("add$m", args)
 		}
 		if (method == null) {
-			throw new RuntimeException("Could not find method add$m($args) or $name($args) on "+this.instance.class)
+			
+			throw new RuntimeException("Could not find method add$m($args) or $name($args) on "+this.class)
 		}
-		method.doMethodInvoke(this.instance, args)
+		try {
+			method.doMethodInvoke(this.metaClass.owner, args)
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e)
+		}
 	}
 }

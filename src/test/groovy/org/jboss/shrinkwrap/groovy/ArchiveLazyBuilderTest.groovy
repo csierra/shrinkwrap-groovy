@@ -24,7 +24,7 @@ class ArchiveLazyBuilderTest extends Specification{
 			}
 			def jar2 = ShrinkWrap.create(JavaArchive.class, "JavaArchive.jar")
 		when:
-			def testJar = jarDesc.build()
+			def testJar = jarDesc
 			jar2.addClasses(String.class, Integer.class)
 		then:
 			testJar == jar2
@@ -35,7 +35,7 @@ class ArchiveLazyBuilderTest extends Specification{
 			def warDesc = war ("WebArchive.war") {
 				classes String.class
 			}
-			def testWar = warDesc.build()
+			def testWar = warDesc
 			def war2 = ShrinkWrap.create(WebArchive.class, "WebArchive.war")
 			
 		when:

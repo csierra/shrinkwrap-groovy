@@ -3,6 +3,7 @@ package org.jboss.shrinkwrap.groovy
 import java.util.Map;
 
 import org.codehaus.groovy.runtime.metaclass.MetaMethodIndex;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.descriptor.api.Descriptor;
 import org.spockframework.builder.ClosureBlueprint;
 
@@ -17,12 +18,7 @@ import org.spockframework.builder.ClosureBlueprint;
  */
 class DescriptorBuilder extends LazyBuilder {
 	
-	
-	DescriptorBuilder(instance) {
-		super(instance)
-	}
-	
-	def invokeMethod(String name, args) {
+	def methodMissing(String name, args) {
 		try {
 			def realargs = args
 			def nested = false
@@ -65,5 +61,9 @@ class DescriptorBuilder extends LazyBuilder {
 		catch (Exception e) {
 			throw new RuntimeException("Could not invoke $name($args) on ${this.instance}", e)
 		}
+	}
+	
+	def resource(String name) {
+		return [name, new StringAsset(this.instance.exportAsString())];
 	}
 }

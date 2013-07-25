@@ -11,39 +11,18 @@ import org.jboss.shrinkwrap.api.Archive
  * @author <a href="mailto:csierra@gmail.com">Carlos Sierra</a>
  *
  */
-public abstract class LazyBuilder {
+public class LazyBuilder {
 		
-	def instance;
-	def closures = []
-	
-	def LazyBuilder(instance) {
-		this.instance = instance;
-	}
-	
-	def appendClosures(Closure<?> ... c) {
-		c.each {
-			it.delegate = this
-			this.closures.add(it)
-		}
-	}
-	
-	def abstract invokeMethod(String name, args)
-	
 	def include(Closure<?> i) {
-		i.delegate = this
-		i()
+		ShrinkWrapGroovy.executeClosureonDelegate(this, i)
 	}
 	
-	def build() {
-		this.closures.each {
-			it()
-		}
+	@Deprecated def build() {
 		return this.instance
 	}
 	
 	def leftShift (Closure<?> c) { 
-		this.appendClosures(c)
-		return this
+		ShrinkWrapGroovy.executeClosureonDelegate(this, c)
 	}
 
 }
